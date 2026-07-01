@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block page_content %}
+<h2 class="mb-3">Log In</h2>
+<form method="post">
+  {{ form.hidden_tag() }}
+
+  {{ render_field(form.email) }}
+  {{ render_field(form.password) }}
+
+  <div class="form-check mb-3">
+    {{ form.remember_me(class="form-check-input") }}
+    {{ form.remember_me.label(class="form-check-label") }}
+  </div>
+  <hr>
+  <a href="{{ url_for('auth.reset_password_request') }}" class="btn btn-link" style="margin-bottom:15px">Forgot password</a>
+  <div class="d-flex flex-wrap gap-2">
+    {{ form.submit(class="btn btn-primary") }}
+
+    <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-danger">
+      Sign in with Google
+    </a>
+
+    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary">
+      Register
+    </a>
+
+    <a href="{{ url_for('main.index') }}" class="btn btn-link">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}

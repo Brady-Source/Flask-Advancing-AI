@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block page_content %}
+<h2 class="mb-3">
+  {% if post %}
+  Edit Post
+  {% else %}
+  Create Post
+  {% endif %}
+</h2>
+
+<form method="post">
+  {{ form.hidden_tag() }}
+
+  {{ render_field(form.subject) }}
+  {{ render_field(form.body_format) }}
+  {{ render_field(form.body) }}
+  {{ render_field(form.tags) }}
+
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('main.index') }}" class="btn btn-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_pagination %}
+
+{% block page_content %}
+<h2 class="mb-3">Experiment Feed</h2>
+{% for post in posts %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <a href="{{ url_for('main.post', id=post.id) }}">{{ post.subject }}</a>
+    </h5>
+    <p class="card-text">
+    {% if post.body_html %}
+      {{ post.body_html | safe }}
+    {% else %}
+      {{ post.body }}
+    {% endif %}
+    </p>
+    {% if post.tags %}
+    <p class="card-text">
+      <small class="text-muted">
+        Tags:
+        {% for tag in post.tags.split(',') %}
+        <span class="badge bg-secondary">{{ tag.strip() }}</span>
+        {% endfor %}
+      </small>
+    </p>
+    {% endif %}
+    <p class="card-text">
+      <small class="text-muted">
+        By <a href="{{ url_for('main.user', username=post.author.username) }}">{{ post.author.username }}</a>
+        &middot; {{ moment(post.timestamp).fromNow() }}
+      </small>
+    </p>
+  </div>
+</div>
+{% else %}
+<p>No posts yet.</p>
+{% endfor %}
+
+{% if pagination %}
+  {{ render_pagination(pagination, 'main.index') }}
+{% endif %}
+{% endblock %}

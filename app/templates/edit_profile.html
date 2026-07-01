@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block page_content %}
+<h2 class="mb-3">Edit Profile</h2>
+{% if current_user.is_administrator %}
+  <p class="alert alert-warning">ADMIN ONLY - SENSITIVE INFORMATION.</p>
+  {{ form.hidden_tag() }}
+  {{ render_field(form.email)}}
+  {{ render_field(form.role_id)}}
+  <h3>END ADMIN DATA</h3>
+  <hr>
+{% endif %}
+  <form method="post">
+    {{ form.hidden_tag() }}
+    {{ render_field(form.name)}}
+    {{ render_field(form.username) }}
+    {{ render_field(form.location)}}
+    {{ render_field(form.about_me) }}
+    {{ render_field(form.age) }}
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+{% endblock %}

@@ -7,7 +7,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV FLASK_APP=manage.py
+ENV FLASK_APP=flask.py
 ENV FLASK_ENV=production
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "manage:app"]
+EXPOSE 8080
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "flasky:app"]

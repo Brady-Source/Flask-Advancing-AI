@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, session, redirect, url_for, flash, request, abort, current_app, make_response
+from flask import render_template, redirect, url_for, flash, request, abort, current_app, make_response
 from flask_login import current_user, login_required
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -7,7 +7,6 @@ from .. import db
 from ..models import User, Role, Permission, Post, Comment
 from ..decorators import admin_required, permission_required
 from datetime import datetime, timezone
-from flask_sqlalchemy import SQLAlchemy
 
 now_utc = datetime.now(timezone.utc)
 

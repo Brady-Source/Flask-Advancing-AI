@@ -1,11 +1,12 @@
 import unittest
 import time
+
 from app import create_app, db
 from app.models import User, Role, Permission
 
 
-class TokenExpirationTestCase(unittest.TestCase):
-    """Exercise 13 — Token expiration test (Chapter 14)"""
+class BaseTestCase(unittest.TestCase):
+    """Common setup/teardown for tests."""
 
     def setUp(self):
         self.app = create_app('testing')
@@ -20,7 +21,11 @@ class TokenExpirationTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_token_expires(self):
+
+class TokenExpirationTestCase(BaseTestCase):
+    """Auth token and security token tests."""
+
+    def test_auth_token_expires(self):
         # Create a test user directly — bypasses Google OAuth
         u = User(username='testuser', email='test@example.com', confirmed=True)
         db.session.add(u)
@@ -35,9 +40,6 @@ class TokenExpirationTestCase(unittest.TestCase):
         self.assertIsNotNone(verified, "Token should be valid immediately after generation")
         self.assertEqual(verified.id, u.id, "Token should resolve to the correct user")
 
-        print(f"\n--- Exercise 13 ---")
-        print(f"Valid token:   {token[:60]}...")
-
         # Wait for expiration
         time.sleep(6)
 
@@ -45,10 +47,7 @@ class TokenExpirationTestCase(unittest.TestCase):
         expired = User.verify_auth_token(token, expiration=5)
         self.assertIsNone(expired, "Token should return None after expiration")
 
-        print(f"Expired token: {token}")
-        print(f"verify_auth_token returned: {expired}  (None = correctly expired)")
-
-    def test_token_generates_for_valid_user(self):
+    def test_auth_token_generates_for_valid_user(self):
         u = User(username='tokenuser', email='token@example.com', confirmed=True)
         db.session.add(u)
         db.session.commit()
@@ -57,26 +56,64 @@ class TokenExpirationTestCase(unittest.TestCase):
         self.assertIsNotNone(token)
         self.assertIsInstance(token, str)
 
-    def test_invalid_token_returns_none(self):
+    def test_invalid_auth_token_returns_none(self):
         result = User.verify_auth_token('this.is.not.a.real.token')
         self.assertIsNone(result, "A garbage token should return None")
 
+    def test_confirmation_token(self):
+        u = User(username='confirmuser', email='confirm@example.com')
+        db.session.add(u)
+        db.session.commit()
 
-class ApplicantUserTestCase(unittest.TestCase):
-    """Exercise 14 — Applicant User account tests (Chapter 15)"""
+        token = u.generate_confirmation_token()
+        self.assertFalse(u.confirmed)
+        ok = u.confirm(token)
+        self.assertTrue(ok, "Valid confirmation token should return True")
+        self.assertTrue(u.confirmed)
 
-    def setUp(self):
-        self.app = create_app('testing')
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-        Role.insert_roles()
-        self.client = self.app.test_client()
+    def test_reset_password_token(self):
+        u = User(username='resetuser', email='reset@example.com')
+        u.password = 'oldpassword'
+        db.session.add(u)
+        db.session.commit()
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
+        token = u.generate_reset_token()
+        self.assertTrue(User.reset_password(token, 'newpassword'))
+        self.assertTrue(u.verify_password('newpassword'))
+
+    def test_change_email_token(self):
+        u = User(username='changeuser', email='old@example.com')
+        db.session.add(u)
+        db.session.commit()
+
+        token = u.generate_email_change_token('new@example.com')
+        changed = u.change_email(token)
+        self.assertTrue(changed)
+        self.assertEqual(u.email, 'new@example.com')
+
+
+class PasswordHashingTestCase(BaseTestCase):
+    """Password hash + salt behavior."""
+
+    def test_password_hash_and_salt(self):
+        u1 = User(username='user1', email='u1@example.com')
+        u1.password = 'catdog'
+        u2 = User(username='user2', email='u2@example.com')
+        u2.password = 'catdog'
+        db.session.add_all([u1, u2])
+        db.session.commit()
+
+        # Same password, but different salts -> different hashes
+        self.assertNotEqual(u1.password_salt, u2.password_salt)
+        self.assertNotEqual(u1.password_hash, u2.password_hash)
+
+        # verify_password should succeed for correct password
+        self.assertTrue(u1.verify_password('catdog'))
+        self.assertFalse(u1.verify_password('wrong'))
+
+
+class ApplicantUserTestCase(BaseTestCase):
+    """Applicant User account tests."""
 
     def test_applicant_role_exists(self):
         role = Role.query.filter_by(name='Applicant User').first()
@@ -160,6 +197,7 @@ class ApplicantUserTestCase(unittest.TestCase):
             f'/api/v1/users/{u.id}',
             headers={'Authorization': f'Bearer {token}'}
         )
+
         # Should return 200 — reading own profile is allowed
         self.assertEqual(response.status_code, 200)
 

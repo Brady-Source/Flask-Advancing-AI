@@ -5,5 +5,7 @@ venv/
 fake.py
 example_data/
 __pycache__/
+profile_dir/
+migrations/
 
 data.sqlite

@@ -1,8 +1,8 @@
-from flask import session, redirect, url_for, flash, render_template, request, current_app
+from flask import session, redirect, url_for, flash, render_template, request
 from flask_login import login_user, logout_user, current_user, login_required
 from . import auth, oauth        
 from .. import db
-from ..models import User, Role, Comment, Post
+from ..models import User
 from .forms import RegistrationForm, ChangePasswordForm, ChangeEmailForm, LoginForm, PasswordResetRequestForm
 from app.email import send_welcome_email
 from ..email import send_email

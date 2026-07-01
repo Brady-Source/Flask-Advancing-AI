@@ -26,3 +26,4 @@ flask_migrate
 werkzeug
 markdown
 bleach
+gunicorn

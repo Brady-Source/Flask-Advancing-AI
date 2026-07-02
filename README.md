@@ -1,6 +1,3 @@
-# Advancing-AI
-Flask forum app
-
 # Flask Advancing AI
 
 A full-stack web application built with Flask, with role-based access control, Google OAuth authentication, secure password hashing+salt, and a RESTful API. Developed as part of a B.S. in Artificial Intelligence curriculum to demonstrate web application programming learning and practical application.
